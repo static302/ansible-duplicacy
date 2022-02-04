@@ -1,0 +1,19 @@
+[
+    {
+        "name": "{{ duplicacy_storage_name }}",
+        "id": "{{ ansible_hostname }}",
+        "repository": "",
+        "storage": "{{ duplicacy_storage_url }}",
+        "encrypted": true,
+        "no_backup": false,
+        "no_restore": false,
+        "no_save_password": false,
+        "nobackup_file": "",
+        "keys": {
+{% if duplicacy_storage_backend == 'onedrive' %}
+                    "one_token": "/.duplicacy/one-token.json",
+                    "password": "{{ duplicacy_storage_password }}"
+{% endif %}
+        }
+    }
+]

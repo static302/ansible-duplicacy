@@ -1,0 +1,6 @@
+---
+- name: install duplicacy
+  include: install_duplicacy.yml
+
+- name: configure duplicacy
+  include: configure_duplicacy.yml

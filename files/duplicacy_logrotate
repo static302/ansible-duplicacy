@@ -1,0 +1,9 @@
+/var/log/duplicacy.log {
+        monthly
+        create 0600 root root
+        rotate 5
+        size=1M
+        dateext
+        dateformat -%d%m%Y
+        notifempty
+}

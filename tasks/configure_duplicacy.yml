@@ -1,0 +1,37 @@
+- name: install backup script dependencies
+  package: name={{item}} state=latest
+  with_items:
+  - jq
+  - curl
+
+- name: create duplicacy folder
+  file: path=/.duplicacy state=directory mode=0700
+
+- name: generate duplicacy backup script
+  template: src=duplicacy-backup.sh.j2 dest=/.duplicacy/duplicacy-backup.sh mode=0700 owner=root
+
+- name: generate duplicacy filters for host
+  template: src=duplicacy_filters.j2 dest=/.duplicacy/filters mode=0600 owner=root
+
+- name: copy onedrive token to host
+  copy: src=one-token.json dest=/.duplicacy/one-token.json mode=0600 owner=root
+  when: duplicacy_storage_backend == 'onedrive'
+
+- name: generate duplicacy preferences for host
+  template: src=duplicacy_preferences.j2 dest=/.duplicacy/preferences mode=0600 owner=root
+
+- name: add logrotate for duplicacy logs
+  copy: src=duplicacy_logrotate dest=/etc/logrotate.d/duplicacy mode=0640 owner=root
+
+- name: add duplicacy cron job
+  ansible.builtin.cron:
+    name: duplicacy backup
+    weekday: "*"
+    minute: "{{ 59 | random(seed=inventory_hostname) }}"
+    hour: "{{ 3 | random(seed=inventory_hostname) }}"
+    user: root
+    job: "sh /.duplicacy/duplicacy-backup.sh"
+    cron_file: duplicacy
+
+- name: duplicacy backup task first run
+  command: "sh /.duplicacy/duplicacy-backup.sh"

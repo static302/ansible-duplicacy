@@ -1,0 +1,27 @@
+  - name: retrieve duplicacy latest release info
+    uri:
+     url: https://api.github.com/repos/gilbertchen/duplicacy/releases/latest
+     return_content: true
+    register: json_response
+
+  - name: download x64 duplicacy binary
+    loop: "{{ json_response.json.assets }}"
+    when: ( 'linux_x64' in item.name ) and ( ansible_architecture == 'x86_64' )
+    get_url:
+      url: "{{ item.browser_download_url }}"
+      dest: /usr/local/bin/duplicacy
+      force: yes
+      mode: 0777
+      owner: root
+      group: root
+
+  - name: download arm64 duplicacy binary
+    loop: "{{ json_response.json.assets }}"
+    when: ( 'linux_arm64' in item.name ) and ( ansible_architecture == 'aarch64' )
+    get_url:
+      url: "{{ item.browser_download_url }}"
+      dest: /usr/local/bin/duplicacy
+      force: yes
+      mode: 0777
+      owner: root
+      group: root
