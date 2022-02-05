@@ -10,9 +10,13 @@
         "no_save_password": false,
         "nobackup_file": "",
         "keys": {
+                    "password": "{{ duplicacy_storage_password }}",
 {% if duplicacy_storage_backend == 'onedrive' %}
-                    "one_token": "/.duplicacy/one-token.json",
-                    "password": "{{ duplicacy_storage_password }}"
+                    "one_token": "/.duplicacy/one-token.json"
+{% endif %}
+{% if duplicacy_storage_backend == 's3' %}
+                    "s3_id": "{{ duplicacy_s3_id }}",
+                    "s3_secret": "{{ duplicacy_s3_secret }}"
 {% endif %}
         }
     }
