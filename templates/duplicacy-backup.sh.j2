@@ -22,15 +22,11 @@ hc_ok()
 
 hc_start
 
-{{ duplicacy_pretasks }}
-
 cd $backup_location || exit
 duplicacy -log -background prune -keep 0:360 -keep 30:1 >> $log
 rc=$?; if [ $rc != 0 ]; then hc_fail; fi
 duplicacy -log -background backup -threads 10 >> $log
 rc=$?; if [ $rc != 0 ]; then hc_fail; fi
-
-{{ duplicacy_posttasks }}
 
 hc_ok
 

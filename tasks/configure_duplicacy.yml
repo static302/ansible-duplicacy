@@ -4,8 +4,11 @@
   - jq
   - curl
 
-- name: create duplicacy folder
-  file: path=/.duplicacy state=directory mode=0700
+- name: create duplicacy folders
+  file: path="/{{ item }}" state=directory mode=0700
+  loop:
+    - .duplicacy
+    - .duplicacy/scripts
 
 - name: generate duplicacy backup script
   template: src=duplicacy-backup.sh.j2 dest=/.duplicacy/duplicacy-backup.sh mode=0700 owner=root
@@ -16,6 +19,14 @@
 - name: copy onedrive token to host
   copy: src=one-token.json dest=/.duplicacy/one-token.json mode=0600 owner=root
   when: duplicacy_storage_backend == 'onedrive'
+
+- name: generate pre-backup script
+  template: src={{application}}_pre-backup.j2 dest=/.duplicacy/scripts/pre-backup mode=0700 owner=root
+  when: use_duplicacy_pretasks == True
+
+- name: generate post-backup script
+  template: src={{application}}_post-backup.j2 dest=/.duplicacy/scripts/post-backup mode=0700 owner=root
+  when: use_duplicacy_posttasks == True
 
 - name: generate duplicacy preferences for host
   template: src=duplicacy_preferences.j2 dest=/.duplicacy/preferences mode=0600 owner=root

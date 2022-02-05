@@ -1,4 +1,6 @@
 use_duplicacy: False
+use_duplicacy_posttasks: False
+use_duplicacy_pretasks: False
 application: ""
 # onedrive and s3 are usable backends for role atm
 duplicacy_storage_backend: onedrive
