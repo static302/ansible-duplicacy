@@ -1,0 +1,10 @@
+use_duplicacy: False
+application: ""
+duplicacy_storage_backend: onedrive
+hc_API_key: "Your healthchecks.io API key goes here"
+duplicacy_storage_password: "Your duplicacy storage password goes here"
+duplicacy_storage_name: storage
+duplicacy_storage_url: one://storage/
+duplicacy_pretasks: ""
+duplicacy_posttasks: ""
+duplicacy_filters: ""
