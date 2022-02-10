@@ -7,27 +7,30 @@ hc_URL=`curl -s https://healthchecks.io/api/v1/checks/  -H "X-Api-Key: $hc_API_k
 
 hc_fail()
 {
-    curl -m 10 --retry 5 $hc_URL/$?
+    curl -sS -m 10 --retry 5 $hc_URL/fail > /dev/null
+    echo $(date '+%Y-%m-%d %H:%M:%S.%3N')" ERROR main backup healthcheck FAIL sent"
 }
 
 hc_start()
 {
-    curl -m 10 --retry 5 $hc_URL/start
+    curl -sS -m 10 --retry 5 $hc_URL/start > /dev/null
+    echo $(date '+%Y-%m-%d %H:%M:%S.%3N')" INFO backup healthcheck START sent"
 }
 
 hc_ok()
 {
-    curl -m 10 --retry 5 $hc_URL
+    curl -sS -m 10 --retry 5 $hc_URL > /dev/null
+    echo $(date '+%Y-%m-%d %H:%M:%S.%3N')" INFO backup healthcheck OK sent"
 }
 
-hc_start
+hc_start >> $log
 
 cd $backup_location || exit
 duplicacy -log -background prune -keep 0:360 -keep 30:1 >> $log
-rc=$?; if [ $rc != 0 ]; then hc_fail; fi
-duplicacy -log -background backup -threads 10 >> $log
-rc=$?; if [ $rc != 0 ]; then hc_fail; fi
+if [ $? != 0 ]; then hc_fail >> $log && exit 1; fi
+/usr/local/bin/duplicacy -log -background backup -threads 10 >> $log
+if [ $? != 0 ]; then hc_fail >> $log && exit 1; fi
 
-hc_ok
+hc_ok >> $log
 
 exit 0
