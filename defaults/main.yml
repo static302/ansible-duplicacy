@@ -2,13 +2,18 @@ use_duplicacy: False
 use_duplicacy_posttasks: False
 use_duplicacy_pretasks: False
 application: ""
+
 # onedrive and s3 are usable backends for role atm
 duplicacy_storage_backend: onedrive
+
 hc_API_key: "Your healthchecks.io API key goes here"
 duplicacy_storage_password: "Your duplicacy storage password goes here"
 duplicacy_storage_name: storage
 duplicacy_storage_url: one://storage/
 duplicacy_filters: ""
+
 # s3 backend special variables
 duplicacy_s3_id: ""
 duplicacy_s3_secret: ""
+
+duplicacy_rotation_period: "-keep 0:360 -keep 30:180 -keep 7:7 -keep 1:1"

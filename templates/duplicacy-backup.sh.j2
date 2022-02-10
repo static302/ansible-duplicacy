@@ -26,7 +26,7 @@ hc_ok()
 hc_start >> $log
 
 cd $backup_location || exit
-duplicacy -log -background prune -keep 0:360 -keep 30:1 >> $log
+/usr/local/bin/duplicacy -log -background prune {{ duplicacy_rotation_period }} >> $log
 if [ $? != 0 ]; then hc_fail >> $log && exit 1; fi
 /usr/local/bin/duplicacy -log -background backup -threads 10 >> $log
 if [ $? != 0 ]; then hc_fail >> $log && exit 1; fi
