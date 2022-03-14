@@ -1,6 +1,6 @@
 ---
 - name: install duplicacy
-  include: install_duplicacy.yml
+  import_tasks: install_duplicacy.yml
 
 - name: configure duplicacy
-  include: configure_duplicacy.yml
+  import_tasks: configure_duplicacy.yml
