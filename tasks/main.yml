@@ -1,6 +1,6 @@
 ---
-- name: install duplicacy
-  import_tasks: install_duplicacy.yml
+- name: Install duplicacy
+  ansible.builtin.import_tasks: install_duplicacy.yml
 
-- name: configure duplicacy
-  import_tasks: configure_duplicacy.yml
+- name: Configure duplicacy
+  ansible.builtin.import_tasks: configure_duplicacy.yml

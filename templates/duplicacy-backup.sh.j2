@@ -1,36 +1,56 @@
 #!/bin/sh
-backup_location=/
-log=/var/log/duplicacy.log
-hc_API_key={{ hc_API_key }}
-hc_payload='{"name": "'`hostname`'_backup", "timeout": 86400, "grace": 43200, "unique": ["name"], "channels": "*"}'
-hc_URL=`curl -s https://healthchecks.io/api/v1/checks/  -H "X-Api-Key: $hc_API_key" -d "$hc_payload"  | jq -r .ping_url`
 
-hc_fail()
-{
-    curl -sS -m 10 --retry 5 $hc_URL/fail > /dev/null
-    echo $(date '+%Y-%m-%d %H:%M:%S.%3N')" ERROR main backup healthcheck FAIL sent"
+backup_location="/"
+log="/var/log/duplicacy.log"
+hc_API_key="{{ hc_API_key }}"
+
+hc_payload=$(jq -n --arg name "$(hostname)_backup" \
+  '{name: $name, timeout: 86400, grace: 43200, unique: ["name"], channels: "*"}')
+
+hc_URL=$(curl -s https://healthchecks.io/api/v1/checks/ \
+  -H "X-Api-Key: $hc_API_key" \
+  -d "$hc_payload" | jq -r .ping_url)
+
+# Functions to handle health check statuses
+hc_fail() {
+  curl -sS -m 10 --retry 5 "$hc_URL/fail" >/dev/null
+  echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') ERROR: Backup healthcheck FAIL sent" >>"$log"
 }
 
-hc_start()
-{
-    curl -sS -m 10 --retry 5 $hc_URL/start > /dev/null
-    echo $(date '+%Y-%m-%d %H:%M:%S.%3N')" INFO backup healthcheck START sent"
+hc_start() {
+  curl -sS -m 10 --retry 5 "$hc_URL/start" >/dev/null
+  echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') INFO: Backup healthcheck START sent" >>"$log"
 }
 
-hc_ok()
-{
-    curl -sS -m 10 --retry 5 $hc_URL > /dev/null
-    echo $(date '+%Y-%m-%d %H:%M:%S.%3N')" INFO backup healthcheck OK sent"
+hc_ok() {
+  curl -sS -m 10 --retry 5 "$hc_URL" >/dev/null
+  echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') INFO: Backup healthcheck OK sent" >>"$log"
 }
 
-hc_start >> $log
+# Start the health check
+hc_start
 
-cd $backup_location || exit
-/usr/local/bin/duplicacy -log -background prune {{ duplicacy_rotation_period }} >> $log
-if [ $? != 0 ]; then hc_fail >> $log && exit 1; fi
-/usr/local/bin/duplicacy -log -background backup -threads 10 >> $log
-if [ $? != 0 ]; then hc_fail >> $log && exit 1; fi
+# Navigate to backup location or exit
+cd "$backup_location" || {
+  echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') ERROR: Failed to access backup location" >>"$log"
+  hc_fail
+  exit 1
+}
 
-hc_ok >> $log
+# Run Duplicacy prune
+if ! /usr/local/bin/duplicacy -log -background prune {{ duplicacy_rotation_period }} >>"$log" 2>&1; then
+  echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') ERROR: Duplicacy prune failed" >>"$log"
+  hc_fail
+  exit 1
+fi
 
+# Run Duplicacy backup
+if ! /usr/local/bin/duplicacy -log -background backup -threads 10 >>"$log" 2>&1; then
+  echo "$(date '+%Y-%m-%d %H:%M:%S.%3N') ERROR: Duplicacy backup failed" >>"$log"
+  hc_fail
+  exit 1
+fi
+
+# End the health check with success
+hc_ok
 exit 0

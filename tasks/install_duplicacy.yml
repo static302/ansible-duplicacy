@@ -1,27 +1,31 @@
-  - name: retrieve duplicacy latest release info
-    uri:
-     url: https://api.github.com/repos/gilbertchen/duplicacy/releases/latest
-     return_content: true
-    register: json_response
+- name: Retrieve duplicacy latest release info
+  ansible.builtin.uri:
+    url: https://api.github.com/repos/gilbertchen/duplicacy/releases/latest
+    return_content: true
+  register: json_response
 
-  - name: download x64 duplicacy binary
-    loop: "{{ json_response.json.assets }}"
-    when: ( 'linux_x64' in item.name ) and ( ansible_architecture == 'x86_64' )
-    get_url:
-      url: "{{ item.browser_download_url }}"
-      dest: /usr/local/bin/duplicacy
-      force: yes
-      mode: 0777
-      owner: root
-      group: root
+- name: Download x64 duplicacy binary
+  when: ( 'linux_x64' in item.name ) and ( ansible_architecture == 'x86_64' )
+  ansible.builtin.get_url:
+    url: "{{ item.browser_download_url }}"
+    dest: /usr/local/bin/duplicacy
+    force: true
+    mode: "0777"
+    owner: root
+    group: root
+  loop: "{{ json_response.json.assets }}"
+  loop_control:
+    label: "{{ item.name }}"
 
-  - name: download arm64 duplicacy binary
-    loop: "{{ json_response.json.assets }}"
-    when: ( 'linux_arm64' in item.name ) and ( ansible_architecture == 'aarch64' )
-    get_url:
-      url: "{{ item.browser_download_url }}"
-      dest: /usr/local/bin/duplicacy
-      force: yes
-      mode: 0777
-      owner: root
-      group: root
+- name: Download arm64 duplicacy binary
+  when: ( 'linux_arm64' in item.name ) and ( ansible_architecture == 'aarch64' )
+  ansible.builtin.get_url:
+    url: "{{ item.browser_download_url }}"
+    dest: /usr/local/bin/duplicacy
+    force: true
+    mode: "0777"
+    owner: root
+    group: root
+  loop: "{{ json_response.json.assets }}"
+  loop_control:
+    label: "{{ item.name }}"
